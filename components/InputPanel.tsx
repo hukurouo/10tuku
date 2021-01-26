@@ -19,88 +19,51 @@ import AccordionMenu from "./Accordion"
 
 
 type inputPanelType = {
-  value: string[]
-  isFailure: boolean
-  isSuccess: boolean
 };
 
 type inputPanelProps = {
   problemNumber: number
+  problem: string[]
+  handleInputChange: any
+  handleSubmit: any
+  nextProblem: any
+  reAnswer: any
+  handleClick: any
+  isFailure: boolean
+  isSuccess: boolean
 }
 
 class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
   constructor(props: inputPanelProps) {
     super(props);
     this.state = {
-      value: ["1","*","2","+","3","/","4"],
-      isFailure: false,
-      isSuccess: false,
     };
-
-    this.handleInputChange = this.handleInputChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleClick = this.handleClick.bind(this);
   }
 
-  handleInputChange(event) {
-    const target = event.target;
-    let updatedValue = this.state.value
-    updatedValue.splice(Number(target.name), 1, target.value)
-    this.setState({value: updatedValue, isFailure: false, isSuccess: false});
-    event.preventDefault();
-  }
 
-  handleClick(event){
-    this.setState({
-      isFailure: false
-    });
-    event.preventDefault();
-  }
 
-  reAnswer = () => {
-    this.setState({
-      isSuccess: false
-    });
-  }
 
-  nextProblem = () => {
-    this.setState({
-      value: ["5","*","5","+","3","/","8"],
-      isSuccess: false
-    });
-  }
 
-  handleSubmit(){
-    const answer = eval(this.state.value.join(''))
-    if (answer == 10){
-      this.setState({
-        isSuccess: true
-      });
-    } else {
-      this.setState({
-        isFailure: true
-      });
-    }
-  }
+
 
   render() {
     return (
       <div>
-        {this.state.isFailure ?
+        {this.props.isFailure ?
           (
           <Alert status="error" mt={4}>
             <AlertIcon />
             <AlertDescription>
-              {this.state.value.join(' ')} = <b>{orgFloor(eval(this.state.value.join('')), 10000)}</b>
+              {this.props.problem.join(' ')} = <b>{orgFloor(eval(this.props.problem.join('')), 10000)}</b>
             </AlertDescription>
-            <CloseButton position="absolute" right="8px" top="8px" onClick={this.handleClick}/>
+            <CloseButton position="absolute" right="8px" top="8px" onClick={this.props.handleClick}/>
           </Alert>
           ) : (
-            this.state.isSuccess ? (
+            this.props.isSuccess ? (
               <Alert status="success" mt={4}>
               <AlertIcon />
               <AlertDescription>
-              {this.state.value.join(' ')} = <b>{eval(this.state.value.join(''))}</b> 
+              {this.props.problem.join(' ')} = <b>{eval(this.props.problem.join(''))}</b> 
               </AlertDescription>
             </Alert>
             ):(
@@ -113,7 +76,7 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
         }
         <Center>
         <Grid templateColumns="repeat(7, 1fr)" gap={1} w={300} mt={4} mb={8}>
-          {this.state.value.map((item,index)=>{
+          {this.props.problem.map((item,index)=>{
             return (
               <Center key={index}>
                 <Box d="flex" mt="2" mx="auto" alignItems="center" fontSize={42}>
@@ -131,11 +94,11 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
         <Grid templateColumns="repeat(3, 1fr)" gap={1} w={300} mb={6} px={3}>
           {[1,3,5].map((item,index)=>{
             return (
-              <RadioGroup defaultValue={this.state.value[item]} key={index} d="flex" mt="2" mx="auto" alignItems="center" >
+              <RadioGroup defaultValue={this.props.problem[item] || "+"} key={index} d="flex" mt="2" mx="auto" alignItems="center" >
                 <Stack spacing={5} direction="column">
                   {['+','-','*','/'].map((operator)=>{
                     return (
-                      <Radio isDisabled={this.state.isSuccess} key={operator} value={operator} name={String(item)} onChange={this.handleInputChange}>
+                      <Radio isDisabled={this.props.isSuccess} key={operator} value={operator} name={String(item)} onChange={this.props.handleInputChange}>
                         <Text fontSize="3xl">
                           {operatorSvg(operator)}
                         </Text>
@@ -149,13 +112,13 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
           </Grid>
           </Center>
           <Center mt={4}>
-            {this.state.isSuccess ? (
+            {this.props.isSuccess ? (
               <div>
-                <Button mx={2} bg="green.100" _hover={{bg:"green.300"}} color="gray.700" onClick={this.reAnswer}>別解を探す</Button>
-                <Button mx={2} bg="cyan.200" _hover={{bg:"cyan.400"}} color="gray.700" onClick={this.nextProblem}>別の問題へ</Button>
+                <Button mx={2} bg="green.100" _hover={{bg:"green.300"}} color="gray.700" onClick={this.props.reAnswer}>別解を探す</Button>
+                <Button mx={2} bg="cyan.200" _hover={{bg:"cyan.400"}} color="gray.700" onClick={this.props.nextProblem}>別の問題へ</Button>
               </div>
             ):(
-              <Button bg="blue.500" _hover={{bg:"blue.700"}} color="white" onClick={this.handleSubmit}>送信</Button>
+              <Button bg="blue.500" _hover={{bg:"blue.700"}} color="white" onClick={this.props.handleSubmit}>送信</Button>
             )}
           </Center>
           <AccordionMenu/>

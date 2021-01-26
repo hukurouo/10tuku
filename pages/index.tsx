@@ -18,33 +18,87 @@ import db from '../lib/db';
 
 type typeHomeState = {
   problemNumber: number
+  problem: string[]
+  isFailure: boolean
+  isSuccess: boolean
 }
 
 class Home extends React.Component<{}, typeHomeState> {
   constructor(props) {
     super(props);
     this.state = {
-      problemNumber: 1234
+      problemNumber: null,
+      problem: [],
+      isFailure: false,
+      isSuccess: false,
     };
   }
   componentDidMount() {
-    console.log(this.state.problemNumber)
     this.initial()
   }
 
   initial = () => {
     var docRef = db.collection("testdatas").doc("wLdmDhIl4Jb6dXEYzpWT");
-    docRef.get().then((doc) => {
+    docRef.get({ source: "cache" }).then((doc) => {
       if (doc.exists) {
-          console.log("Document data:", doc.data());
-          this.setState({
-            problemNumber: Number(doc.data().id)
-          })
+          this.setData(doc.data())
       } else {
           console.log("No such document!");
       }
-    }).catch(function(error) {
-      console.log("Error getting document:", error);
+    }).catch((err)=>{
+      console.log(err)
+      docRef.get().then((doc) => {
+        this.setData(doc.data())
+      }).catch((err)=>{console.log(err)})
+    });
+  }
+
+  setData = (data: any) => {
+    console.log(data)
+    this.setState({
+      problemNumber: data.id,
+      problem: String(data.num).split("").join("+").split("")
+    })
+    setTimeout(()=>{},1000)
+  }
+
+  handleInputChange = (event: { target: any; preventDefault: () => void; }) => {
+    const target = event.target;
+    let updatedValue = this.state.problem
+    updatedValue.splice(Number(target.name), 1, target.value)
+    this.setState({problem: updatedValue, isFailure: false, isSuccess: false});
+    event.preventDefault();
+  }
+
+  handleSubmit = () => {
+    const answer = eval(this.state.problem.join(''))
+    if (answer == 10){
+      this.setState({
+        isSuccess: true
+      });
+    } else {
+      this.setState({
+        isFailure: true
+      });
+    }
+  }
+
+  handleClick = () => {
+    this.setState({
+      isFailure: false
+    });
+  }
+
+  reAnswer = () => {
+    this.setState({
+      isSuccess: false
+    });
+  }
+
+  nextProblem = () => {
+    this.setState({
+      problem: ["5","*","5","+","3","/","8"],
+      isSuccess: false
     });
   }
 
@@ -70,7 +124,17 @@ class Home extends React.Component<{}, typeHomeState> {
           </TabList>
           <TabPanels>
             <TabPanel>
-              <InputPanel problemNumber={this.state.problemNumber}/>
+              <InputPanel 
+                problemNumber={this.state.problemNumber}
+                problem={this.state.problem}
+                handleInputChange={(event: { target: any; preventDefault: () => void; })=> this.handleInputChange(event)}
+                handleSubmit={()=>this.handleSubmit()}
+                nextProblem={()=>this.nextProblem()}
+                reAnswer={()=>this.reAnswer()}
+                handleClick={()=>this.handleClick()}
+                isFailure={this.state.isFailure}
+                isSuccess={this.state.isSuccess}
+              />
             </TabPanel>
             <TabPanel>
               <p>統計情報</p>
