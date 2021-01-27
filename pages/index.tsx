@@ -14,11 +14,15 @@ import {
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
 import Ranking from "../components/Ranking"
-import db from '../lib/db';
+import firebase from 'firebase/app'
+import 'firebase/firestore'
+
+const db = firebase.firestore()
 
 type typeHomeState = {
   problemNumber: number
   problem: string[]
+  answers: Map<string, string>
   isFailure: boolean
   isSuccess: boolean
 }
@@ -29,6 +33,7 @@ class Home extends React.Component<{}, typeHomeState> {
     this.state = {
       problemNumber: null,
       problem: [],
+      answers: null,
       isFailure: false,
       isSuccess: false,
     };
@@ -38,28 +43,29 @@ class Home extends React.Component<{}, typeHomeState> {
   }
 
   initial = () => {
-    var docRef = db.collection("testdatas").doc("wLdmDhIl4Jb6dXEYzpWT");
-    docRef.get({ source: "cache" }).then((doc) => {
-      if (doc.exists) {
-          this.setData(doc.data())
-      } else {
-          console.log("No such document!");
-      }
+    let answers : Map<string, string> = new Map()
+    var docRef = db.collection("testdatas").where("isAnswered" , "==", false).limit(1)
+    docRef.get()
+    .then((querySnapshot) => {
+      const num = querySnapshot.docs[0].data().num
+      this.setProblem(num)
+      db.collection("testdatas").where("num" , "==", num).get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          answers.set(doc.data().formula as string, doc.id as string)
+        })
+        this.setState({answers: answers})
+      })
     }).catch((err)=>{
       console.log(err)
-      docRef.get().then((doc) => {
-        this.setData(doc.data())
-      }).catch((err)=>{console.log(err)})
     });
   }
 
-  setData = (data: any) => {
-    console.log(data)
+  setProblem = (num: any) => {
     this.setState({
-      problemNumber: data.id,
-      problem: String(data.num).split("").join("+").split("")
+      problemNumber: num,
+      problem: String(num).split("").join("+").split("")
     })
-    setTimeout(()=>{},1000)
   }
 
   handleInputChange = (event: { target: any; preventDefault: () => void; }) => {
@@ -73,6 +79,7 @@ class Home extends React.Component<{}, typeHomeState> {
   handleSubmit = () => {
     const answer = eval(this.state.problem.join(''))
     if (answer == 10){
+      const docId = this.state.answers.get(this.state.problem.join(''))
       this.setState({
         isSuccess: true
       });
@@ -91,8 +98,24 @@ class Home extends React.Component<{}, typeHomeState> {
 
   reAnswer = () => {
     this.setState({
-      isSuccess: false
+      isSuccess: false,
     });
+    /*
+    db.collection("testdatas")
+      .add({
+        formula: "1+1-1+9",
+        id: 7,
+        isAnswered: false,
+        num: 1119,
+        operators: "+-+"
+      })
+      .then(function (docRef) {
+        console.log("Document written with ID: ", docRef.id);
+      })
+      .catch(function (error) {
+        console.error("Error adding document: ", error);
+      });  
+    */
   }
 
   nextProblem = () => {
