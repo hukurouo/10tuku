@@ -47,6 +47,7 @@ class Home extends React.Component<{}, typeHomeState> {
     var docRef = db.collection("testdatas").where("isAnswered" , "==", false).limit(1)
     docRef.get()
     .then((querySnapshot) => {
+      console.log(querySnapshot.docs[0].id)
       const num = querySnapshot.docs[0].data().num
       this.setProblem(num)
       db.collection("testdatas").where("num" , "==", num).get()
@@ -62,9 +63,14 @@ class Home extends React.Component<{}, typeHomeState> {
   }
 
   setProblem = (num: any) => {
+    const strNum = String(num)
+    const prev = this.state.problem
+    console.log(prev)
+    const problem = (prev.length === 0) ? String(num).split("").join("+").split("") : (strNum[0] + prev[1] + strNum[1] + prev[3] + strNum[2] + prev[5] + strNum[3]).split("")
     this.setState({
       problemNumber: num,
-      problem: String(num).split("").join("+").split("")
+      problem: problem,
+      isSuccess: false
     })
   }
 
@@ -80,6 +86,7 @@ class Home extends React.Component<{}, typeHomeState> {
     const answer = eval(this.state.problem.join(''))
     if (answer == 10){
       const docId = this.state.answers.get(this.state.problem.join(''))
+      this.finishedAnswer(docId)
       this.setState({
         isSuccess: true
       });
@@ -88,6 +95,21 @@ class Home extends React.Component<{}, typeHomeState> {
         isFailure: true
       });
     }
+  }
+
+  finishedAnswer= (docId: string) => {
+    var docRef = db.collection("testdatas").doc(docId)
+    docRef
+      .update({
+        isAnswered: true,
+      })
+      .then(function () {
+        console.log("Document successfully updated!");
+      })
+      .catch(function (error) {
+        // The document probably doesn't exist.
+        console.error("Error updating document: ", error);
+      });
   }
 
   handleClick = () => {
@@ -101,13 +123,13 @@ class Home extends React.Component<{}, typeHomeState> {
       isSuccess: false,
     });
     /*
-    db.collection("testdatas")
+    db.collection("testdata2")
       .add({
-        formula: "1+1-1+9",
-        id: 7,
+        id: 10,
+        formula: "1-1+1+9",
         isAnswered: false,
         num: 1119,
-        operators: "+-+"
+        operators: "-++"
       })
       .then(function (docRef) {
         console.log("Document written with ID: ", docRef.id);
@@ -119,10 +141,7 @@ class Home extends React.Component<{}, typeHomeState> {
   }
 
   nextProblem = () => {
-    this.setState({
-      problem: ["5","*","5","+","3","/","8"],
-      isSuccess: false
-    });
+    this.initial()
   }
 
   render() {
