@@ -114,14 +114,13 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
           <Center mt={4}>
             {this.props.isSuccess ? (
               <div>
-                <Button mx={2} bg="green.100" _hover={{bg:"green.300"}} color="gray.700" onClick={this.props.reAnswer}>別解を探す</Button>
                 <Button mx={2} bg="cyan.200" _hover={{bg:"cyan.400"}} color="gray.700" onClick={this.props.nextProblem}>別の問題へ</Button>
               </div>
             ):(
               <Button bg="blue.500" _hover={{bg:"blue.700"}} color="white" onClick={this.props.handleSubmit}>送信</Button>
             )}
           </Center>
-          <AccordionMenu/>
+         
         </form>
         
       </div>

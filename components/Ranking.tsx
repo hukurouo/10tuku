@@ -11,13 +11,26 @@ import {
 } from "@chakra-ui/react";
 import "firebase/auth";
 
-export default function Ranking() {
+export default function Ranking(props) {
   return (
     <div>
       <Text my={4}>
-      <Button colorScheme="teal" variant="link">
-      ツイッター連携
-      </Button> で、ユーザー名を登録できます
+        
+        {props.name ? (
+          <>
+            {props.name} でログインしています。
+            <Button colorScheme="teal" size="sm" variant="ghost" onClick={props.handleClickTwitterLogout}>
+              ログアウトする
+            </Button>
+          </>
+        ):(
+          <>
+          <Button colorScheme="teal" variant="link" onClick={props.handleClickTwitterAuth}>
+          ツイッター連携
+          </Button> で、回数を記録できます。
+          </>
+        )}
+      
       </Text>
       <Table size="sm" mt={8}>
         <Thead>
@@ -28,21 +41,15 @@ export default function Ranking() {
           </Tr>
         </Thead>
         <Tbody>
-          <Tr>
-            <Td p={1} >1</Td>
-            <Td p={1}>@hukhukurouaa</Td>
-            <Td p={1}>3411</Td>
-          </Tr>
-          <Tr>
-            <Td p={1}>2</Td>
-            <Td p={1}>@hukurouo_code</Td>
-            <Td p={1}>6</Td>
-          </Tr>
-          <Tr>
-            <Td p={1}>3</Td>
-            <Td p={1}>@owlbook248</Td>
-            <Td p={1}>3</Td>
-          </Tr>
+          {props.rankingData.map((item:{screenName: string, count: number}, index:number)=>{
+            return (
+              <Tr key={index}>
+                <Td p={1}>{index+1}</Td>
+                <Td px={1}><Text color="blue.600" _hover={{color:"blue.300"}}><a href={"https://twitter.com/" + item.screenName} rel="nofollow" target="_blank">@{item.screenName}</a></Text>  </Td>
+                <Td p={1}>{item.count}</Td>
+                </Tr>
+              );
+          })}
         </Tbody>
       </Table>
     </div>
