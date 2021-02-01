@@ -76,20 +76,20 @@ class Home extends React.Component<{}, typeHomeState> {
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach(function (doc) {
-          console.log(doc.id, " => ", doc.data());
+          //console.log(doc.id, " => ", doc.data());
           rankingArray.push(doc.data());
         });
         this.setState({ ranking: rankingArray });
       })
       .catch(function (error) {
-        console.log("Error getting documents: ", error);
+        //console.log("Error getting documents: ", error);
       });
   };
 
   setProblem = (num: any) => {
     const strNum = String(num);
     const prev = this.state.problem;
-    console.log(prev);
+    //console.log(prev);
     const problem =
       prev.length === 0
         ? String(num).split("").join("+").split("")
@@ -146,7 +146,7 @@ class Home extends React.Component<{}, typeHomeState> {
         count: increment,
       })
       .then(function () {
-        console.log("Document successfully updated!");
+        //console.log("Document successfully updated!");
       })
       .catch(function (error) {
         // The document probably doesn't exist.
@@ -171,19 +171,19 @@ class Home extends React.Component<{}, typeHomeState> {
   };
 
   twitterAuth = () => {
-    console.log("auth");
+    //console.log("auth");
     const provider = new firebase.auth.TwitterAuthProvider();
     firebase
       .auth()
       .signInWithPopup(provider)
       .then((result) => {
-        console.log(result.additionalUserInfo.username);
+        //console.log(result.additionalUserInfo.username);
         var rankingRef = db.collection("ranking").doc(result.user.uid);
         rankingRef
           .get()
           .then(function (doc) {
             if (doc.exists) {
-              console.log("got document data");
+              //console.log("got document data");
             } else {
               db.collection("ranking")
                 .doc(result.user.uid)
@@ -192,19 +192,19 @@ class Home extends React.Component<{}, typeHomeState> {
                   screenName: result.additionalUserInfo.username,
                 })
                 .then(function () {
-                  console.log("Document successfully written!");
+                  //console.log("Document successfully written!");
                 })
                 .catch(function (error) {
-                  console.error("Error writing document: ", error);
+                  //console.error("Error writing document: ", error);
                 });
             }
           })
           .catch(function (error) {
-            console.log("Error getting document:", error);
+            //console.log("Error getting document:", error);
           });
       })
       .catch((error) => {
-        console.log(error);
+        //console.log(error);
       });
   };
 
@@ -229,6 +229,12 @@ class Home extends React.Component<{}, typeHomeState> {
         <Head>
           <title>10をつくるやつ</title>
           <link rel="icon" href="/favicon.ico" />
+          <meta
+          property="og:image"
+          content={`https://i.imgur.com/ikWQggQl.png`}
+        />
+        <meta name="og:title" content={"10をつくるやつ"} />
+        <meta name="twitter:card" content="summary" />
         </Head>
 
         <Center color="black" mb={6}>
