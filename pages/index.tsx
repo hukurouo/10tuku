@@ -14,24 +14,24 @@ import {
   Text,
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
-import Ranking from "../components/Ranking"
-import Nums from "../components/Nums"
-import firebase from 'firebase/app'
-import 'firebase/firestore'
-import 'firebase/auth'
-import {getRedirectResult} from "../lib/firebaseAuth"
+import Ranking from "../components/Ranking";
+import Nums from "../components/Nums";
+import firebase from "firebase/app";
+import "firebase/firestore";
+import "firebase/auth";
+import { getRedirectResult } from "../lib/firebaseAuth";
 
-const db = firebase.firestore()
+const db = firebase.firestore();
 
 type typeHomeState = {
-  problemNumber: number
-  problem: string[]
-  ranking: any[]
-  uid: string
-  displayName: string
-  isFailure: boolean
-  isSuccess: boolean
-}
+  problemNumber: number;
+  problem: string[];
+  ranking: any[];
+  uid: string;
+  displayName: string;
+  isFailure: boolean;
+  isSuccess: boolean;
+};
 
 class Home extends React.Component<{}, typeHomeState> {
   constructor(props) {
@@ -55,7 +55,6 @@ class Home extends React.Component<{}, typeHomeState> {
   initial = () => {
     const problemNum = Nums[Math.floor(Math.random() * Nums.length)];
     this.setProblem(problemNum);
-    
   };
 
   getRedirectResult() {
@@ -179,17 +178,29 @@ class Home extends React.Component<{}, typeHomeState> {
       .signInWithPopup(provider)
       .then((result) => {
         console.log(result.additionalUserInfo.username);
-        db.collection("ranking")
-          .doc(result.user.uid)
-          .set({
-            count: 0,
-            screenName: result.additionalUserInfo.username,
-          })
-          .then(function () {
-            console.log("Document successfully written!");
+        var rankingRef = db.collection("ranking").doc(result.user.uid);
+        rankingRef
+          .get()
+          .then(function (doc) {
+            if (doc.exists) {
+              console.log("got document data");
+            } else {
+              db.collection("ranking")
+                .doc(result.user.uid)
+                .set({
+                  count: 0,
+                  screenName: result.additionalUserInfo.username,
+                })
+                .then(function () {
+                  console.log("Document successfully written!");
+                })
+                .catch(function (error) {
+                  console.error("Error writing document: ", error);
+                });
+            }
           })
           .catch(function (error) {
-            console.error("Error writing document: ", error);
+            console.log("Error getting document:", error);
           });
       })
       .catch((error) => {
@@ -228,9 +239,15 @@ class Home extends React.Component<{}, typeHomeState> {
         <Container maxW="2xl" bg="white" px={2} py="8">
           <Tabs colorScheme="blue" align="center">
             <TabList>
-              <Tab p={2} fontWeight="bold" color="gray.600">10つく</Tab>
-              <Tab p={2} fontWeight="bold" color="gray.600">タイムアタック</Tab>
-              <Tab p={2} fontWeight="bold" color="gray.600">ランキング</Tab>
+              <Tab p={2} fontWeight="bold" color="gray.600">
+                10つく
+              </Tab>
+              <Tab p={2} fontWeight="bold" color="gray.600">
+                タイムアタック
+              </Tab>
+              <Tab p={2} fontWeight="bold" color="gray.600">
+                ランキング
+              </Tab>
             </TabList>
             <TabPanels>
               <TabPanel>
@@ -290,4 +307,4 @@ class Home extends React.Component<{}, typeHomeState> {
   }
 }
 
-export default Home
+export default Home;
