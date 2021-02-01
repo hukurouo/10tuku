@@ -14,12 +14,12 @@ import {
   Text,
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
+import TimeAttack from "../components/TimeAttack";
 import Ranking from "../components/Ranking";
 import Nums from "../components/Nums";
 import firebase from "firebase/app";
 import "firebase/firestore";
 import "firebase/auth";
-import { getRedirectResult } from "../lib/firebaseAuth";
 
 const db = firebase.firestore();
 
@@ -30,7 +30,10 @@ type typeHomeState = {
   uid: string;
   displayName: string;
   isFailure: boolean;
+  TAisFailure: boolean;
   isSuccess: boolean;
+  TAcount: number;
+  TAnow: boolean;
 };
 
 class Home extends React.Component<{}, typeHomeState> {
@@ -44,6 +47,9 @@ class Home extends React.Component<{}, typeHomeState> {
       displayName: "",
       isFailure: false,
       isSuccess: false,
+      TAisFailure: false,
+      TAcount: 1,
+      TAnow: false,
     };
   }
   componentDidMount() {
@@ -116,6 +122,7 @@ class Home extends React.Component<{}, typeHomeState> {
     this.setState({
       problem: updatedValue,
       isFailure: false,
+      TAisFailure: false,
       isSuccess: false,
     });
     event.preventDefault();
@@ -134,6 +141,20 @@ class Home extends React.Component<{}, typeHomeState> {
       });
     }
   };
+
+  TAhandleSubmit = () => {
+    const answer = eval(this.state.problem.join(""));
+    if (answer == 10) {
+      this.initial();
+      this.setState({
+        TAcount: this.state.TAcount + 1
+      });
+    } else {
+      this.setState({
+        TAisFailure: true,
+      });
+    }
+  }
 
   finishedAnswer = () => {
     if (!this.state.uid) {
@@ -223,6 +244,12 @@ class Home extends React.Component<{}, typeHomeState> {
       });
   };
 
+  TAstart = () => {
+    this.setState({
+      TAnow: true
+    })
+  }
+
   render() {
     return (
       <Container maxW="full" minH="100vh" bg="gray.100" py={6}>
@@ -230,11 +257,11 @@ class Home extends React.Component<{}, typeHomeState> {
           <title>10をつくるやつ</title>
           <link rel="icon" href="/favicon.ico" />
           <meta
-          property="og:image"
-          content={`https://i.imgur.com/ikWQggQl.png`}
-        />
-        <meta name="og:title" content={"10をつくるやつ"} />
-        <meta name="twitter:card" content="summary" />
+            property="og:image"
+            content={`https://i.imgur.com/ikWQggQl.png`}
+          />
+          <meta name="og:title" content={"10をつくるやつ"} />
+          <meta name="twitter:card" content="summary" />
         </Head>
 
         <Center color="black" mb={6}>
@@ -272,7 +299,26 @@ class Home extends React.Component<{}, typeHomeState> {
                   isSuccess={this.state.isSuccess}
                 />
               </TabPanel>
-              <TabPanel></TabPanel>
+              <TabPanel>
+                {this.state.TAnow ? (
+                  <TimeAttack
+                  problemNumber={this.state.problemNumber}
+                  problem={this.state.problem}
+                  handleInputChange={(event: {
+                    target: any;
+                    preventDefault: () => void;
+                  }) => this.handleInputChange(event)}
+                  TAhandleSubmit={() => this.TAhandleSubmit()}
+                  TAisFailure={this.state.TAisFailure}
+                  TAcount={this.state.TAcount}
+                />
+                ):(
+                  <>
+                  <Button mx={2} bg="gray.200" _hover={{bg:"gray.400"}} color="gray.700" onClick={()=>this.TAstart()}>タイムアタック開始</Button>
+                  </>
+                )}
+                
+              </TabPanel>
               <TabPanel>
                 <Ranking
                   name={this.state.displayName}

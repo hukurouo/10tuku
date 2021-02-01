@@ -14,63 +14,42 @@ import {
   AlertDescription,
   CloseButton,
   Stack,
+  useToast,
 } from "@chakra-ui/react";
-import AccordionMenu from "./Accordion"
-
-
-type inputPanelType = {
-};
 
 type inputPanelProps = {
   problemNumber: number
   problem: string[]
   handleInputChange: any
-  handleSubmit: any
-  nextProblem: any
-  reAnswer: any
-  handleClick: any
-  isFailure: boolean
-  isSuccess: boolean
+  TAhandleSubmit: any
+  TAisFailure: boolean
+  TAcount: number;
 }
 
-class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
-  constructor(props: inputPanelProps) {
-    super(props);
-    this.state = {
-    };
-  }
+function TimeAttack(props: inputPanelProps){
 
-  render() {
+  
     return (
       <div>
-        {this.props.isFailure ?
+        {props.TAisFailure ?
           (
           <Alert status="error" mt={4}>
             <AlertIcon />
             <AlertDescription>
-              {this.props.problem.join(' ')} = <b>{orgFloor(eval(this.props.problem.join('')), 10000)}</b>
+              {props.problem.join(' ')} = <b>{orgFloor(eval(props.problem.join('')), 10000)}</b>
             </AlertDescription>
-            <CloseButton position="absolute" right="8px" top="8px" onClick={this.props.handleClick}/>
+            
           </Alert>
           ) : (
-            this.props.isSuccess ? (
-              <Alert status="success" mt={4}>
-              <AlertIcon />
-              <AlertDescription>
-              {this.props.problem.join(' ')} = <b>{eval(this.props.problem.join(''))}</b> 
-              </AlertDescription>
-            </Alert>
-            ):(
               <Alert status="info" bg="gray.100" mt={4}>
                 <AlertIcon />
-                No.{this.props.problemNumber}
+                No.{props.problemNumber} / {props.TAcount}問目
               </Alert>
-            )
           )
         }
         <Center>
         <Grid templateColumns="repeat(7, 1fr)" gap={1} w={300} mt={4} mb={8}>
-          {this.props.problem.map((item,index)=>{
+          {props.problem.map((item,index)=>{
             return (
               <Center key={index}>
                 <Box d="flex" mt="2" mx="auto" alignItems="center" fontSize={42}>
@@ -88,11 +67,11 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
         <Grid templateColumns="repeat(3, 1fr)" gap={1} w={300} mb={6} px={3}>
           {[1,3,5].map((item,index)=>{
             return (
-              <RadioGroup defaultValue={this.props.problem[item] || "+"} key={index} d="flex" mt="2" mx="auto" alignItems="center" >
+              <RadioGroup defaultValue={props.problem[item] || "+"} key={index} d="flex" mt="2" mx="auto" alignItems="center" >
                 <Stack spacing={5} direction="column">
                   {['+','-','*','/'].map((operator)=>{
                     return (
-                      <Radio isDisabled={this.props.isSuccess} key={operator} value={operator} name={String(item)} onChange={this.props.handleInputChange}>
+                      <Radio key={operator} value={operator} name={String(item)} onChange={props.handleInputChange}>
                         <Text fontSize="3xl">
                           {operatorSvg(operator)}
                         </Text>
@@ -106,13 +85,9 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
           </Grid>
           </Center>
           <Center mt={4}>
-            {this.props.isSuccess ? (
-              <div>
-                <Button mx={2} bg="cyan.200" _hover={{bg:"cyan.400"}} color="gray.700" onClick={this.props.nextProblem}>別の問題へ</Button>
-              </div>
-            ):(
-              <Button bg="blue.500" _hover={{bg:"blue.700"}} color="white" onClick={this.props.handleSubmit}>送信</Button>
-            )}
+            
+          {ToastExample(props)}
+            
           </Center>
          
         </form>
@@ -120,9 +95,9 @@ class inputPanel extends React.Component<inputPanelProps, inputPanelType> {
       </div>
     );
   }
-}
 
-export default inputPanel;
+
+export default TimeAttack
 
 function operatorSvg(operator: string){
   switch (operator) {
@@ -141,4 +116,28 @@ function operatorSvg(operator: string){
 
 function orgFloor(value, base) {
   return Math.floor(value * base) / base;
+}
+
+function ToastExample(props) {
+  const toast = useToast()
+  return (
+    <Button
+      onClick={() => {
+        const answer = eval(props.problem.join(''));
+        if (answer == 10) {
+          toast({
+          position: "top",
+          title: `${props.problem.join(' ')} = ${eval(props.problem.join(''))}`,
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+          });
+        }
+        props.TAhandleSubmit()
+      }
+      }
+    >
+      送信
+    </Button>
+  )
 }
