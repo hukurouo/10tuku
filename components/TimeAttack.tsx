@@ -3,6 +3,7 @@ import {
   Center,
   Box,
   HStack,
+  Flex,
   Text,
   Grid,
   Radio,
@@ -15,15 +16,17 @@ import {
   CloseButton,
   Stack,
   useToast,
+  Progress,
+  processResponsive,
 } from "@chakra-ui/react";
 
 type inputPanelProps = {
-  problemNumber: number
   problem: string[]
   handleInputChange: any
   TAhandleSubmit: any
   TAisFailure: boolean
   TAcount: number;
+  TAtime: number
 }
 
 function TimeAttack(props: inputPanelProps){
@@ -31,6 +34,7 @@ function TimeAttack(props: inputPanelProps){
   
     return (
       <div>
+        
         {props.TAisFailure ?
           (
           <Alert status="error" mt={4}>
@@ -43,10 +47,11 @@ function TimeAttack(props: inputPanelProps){
           ) : (
               <Alert status="info" bg="gray.100" mt={4}>
                 <AlertIcon />
-                No.{props.problemNumber} / {props.TAcount}問目
+                {props.TAcount}問目 
               </Alert>
           )
         }
+        
         <Center>
         <Grid templateColumns="repeat(7, 1fr)" gap={1} w={300} mt={4} mb={8}>
           {props.problem.map((item,index)=>{
@@ -89,9 +94,8 @@ function TimeAttack(props: inputPanelProps){
           {ToastExample(props)}
             
           </Center>
-         
+          <Progress value={props.TAtime} mt={4} max={180}/>
         </form>
-        
       </div>
     );
   }

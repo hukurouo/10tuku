@@ -9,9 +9,13 @@ import {
   TabList,
   TabPanels,
   Tab,
+  Progress,
+  Input,
   Button,
   TabPanel,
   Text,
+  FormControl,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
 import TimeAttack from "../components/TimeAttack";
@@ -30,10 +34,13 @@ type typeHomeState = {
   uid: string;
   displayName: string;
   isFailure: boolean;
-  TAisFailure: boolean;
   isSuccess: boolean;
+  TAisFailure: boolean;
   TAcount: number;
-  TAnow: boolean;
+  TAstatus: string;
+  TAtime: number;
+  TAname: string;
+  TAinputValidation: boolean;
 };
 
 class Home extends React.Component<{}, typeHomeState> {
@@ -49,7 +56,10 @@ class Home extends React.Component<{}, typeHomeState> {
       isSuccess: false,
       TAisFailure: false,
       TAcount: 1,
-      TAnow: false,
+      TAstatus: "ready",
+      TAtime: 0,
+      TAname: "",
+      TAinputValidation: false,
     };
   }
   componentDidMount() {
@@ -147,14 +157,14 @@ class Home extends React.Component<{}, typeHomeState> {
     if (answer == 10) {
       this.initial();
       this.setState({
-        TAcount: this.state.TAcount + 1
+        TAcount: this.state.TAcount + 1,
       });
     } else {
       this.setState({
         TAisFailure: true,
       });
     }
-  }
+  };
 
   finishedAnswer = () => {
     if (!this.state.uid) {
@@ -244,11 +254,37 @@ class Home extends React.Component<{}, typeHomeState> {
       });
   };
 
+  timerObj: any;
   TAstart = () => {
     this.setState({
-      TAnow: true
-    })
+      TAstatus: "running",
+    });
+    this.timerObj = setInterval(() => this.tick(), 1000);
+  };
+
+  componentWillUnmount() {
+    clearInterval(this.timerObj);
   }
+
+  tick = () => {
+    this.setState({
+      TAtime: this.state.TAtime + 1,
+    });
+    if (this.state.TAtime > 180) {
+      this.setState({
+        TAstatus: "finished",
+      });
+      clearInterval(this.timerObj);
+    }
+  };
+
+  handleNameChange = (event) => {
+    this.setState({ TAname: event.target.value });
+  };
+
+  TAsubmit = () => {
+    this.setState({ TAinputValidation: true });
+  };
 
   render() {
     return (
@@ -299,25 +335,70 @@ class Home extends React.Component<{}, typeHomeState> {
                   isSuccess={this.state.isSuccess}
                 />
               </TabPanel>
-              <TabPanel>
-                {this.state.TAnow ? (
+              <TabPanel align="left">
+                {this.state.TAstatus == "running" ? (
                   <TimeAttack
-                  problemNumber={this.state.problemNumber}
-                  problem={this.state.problem}
-                  handleInputChange={(event: {
-                    target: any;
-                    preventDefault: () => void;
-                  }) => this.handleInputChange(event)}
-                  TAhandleSubmit={() => this.TAhandleSubmit()}
-                  TAisFailure={this.state.TAisFailure}
-                  TAcount={this.state.TAcount}
-                />
-                ):(
-                  <>
-                  <Button mx={2} bg="gray.200" _hover={{bg:"gray.400"}} color="gray.700" onClick={()=>this.TAstart()}>タイムアタック開始</Button>
-                  </>
+                    problem={this.state.problem}
+                    handleInputChange={(event: {
+                      target: any;
+                      preventDefault: () => void;
+                    }) => this.handleInputChange(event)}
+                    TAhandleSubmit={() => this.TAhandleSubmit()}
+                    TAisFailure={this.state.TAisFailure}
+                    TAcount={this.state.TAcount}
+                    TAtime={this.state.TAtime}
+                  />
+                ) : (
+                  <Center mt={8}>
+                    {this.state.TAstatus == "ready" ? (
+                      <Stack align="center">
+                        <Text mb={4}>制限時間は3分間です。</Text>
+                        <Button
+                          
+                          mx={2}
+                          bg="gray.200"
+                          _hover={{ bg: "gray.400" }}
+                          color="gray.700"
+                          onClick={() => this.TAstart()}
+                        >
+                          タイムアタック開始
+                        </Button>
+                      </Stack>
+                    ) : (
+                      <Stack align="center">
+                        <div>finished!</div>
+                        <Text fontSize="4xl" mb={4}>
+                          {" "}
+                          count: {this.state.TAcount-1}
+                        </Text>
+                        <Text mb={8}>
+                          3分間で{this.state.TAcount-1}個の10を作りました。
+                        </Text>
+                        <FormControl isInvalid={this.state.TAinputValidation}>
+                          <Input
+                            placeholder="名前を入力"
+                            size="md"
+                            value={this.state.TAname}
+                            onChange={this.handleNameChange}
+                            isRequired={true}
+                          />{" "}
+                          <FormErrorMessage>
+                            名前を入力してください
+                          </FormErrorMessage>
+                        </FormControl>
+                        <Button
+                          mx={2}
+                          bg="green.200"
+                          _hover={{ bg: "green.300" }}
+                          color="gray.700"
+                          onClick={() => this.TAsubmit()}
+                        >
+                          記録する
+                        </Button>
+                      </Stack>
+                    )}
+                  </Center>
                 )}
-                
               </TabPanel>
               <TabPanel>
                 <Ranking
