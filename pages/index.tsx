@@ -11,11 +11,13 @@ import {
   Tab,
   Progress,
   Input,
+  Box,
   Button,
   TabPanel,
   Text,
   FormControl,
   FormErrorMessage,
+  Link,
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
 import TimeAttack from "../components/TimeAttack";
@@ -41,6 +43,7 @@ type typeHomeState = {
   TAtime: number;
   TAname: string;
   TAinputValidation: boolean;
+  TAinputField: boolean;
 };
 
 class Home extends React.Component<{}, typeHomeState> {
@@ -55,11 +58,12 @@ class Home extends React.Component<{}, typeHomeState> {
       isFailure: false,
       isSuccess: false,
       TAisFailure: false,
-      TAcount: 1,
+      TAcount: 0,
       TAstatus: "ready",
       TAtime: 0,
       TAname: "",
       TAinputValidation: false,
+      TAinputField: true,
     };
   }
   componentDidMount() {
@@ -85,10 +89,10 @@ class Home extends React.Component<{}, typeHomeState> {
   }
 
   getRankingData = () => {
-    const Ref = db.collection("ranking");
+    const Ref = db.collection("TimeAttackRanking");
     const rankingArray = [];
     Ref.orderBy("count", "desc")
-      .limit(5)
+      .limit(10)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach(function (doc) {
@@ -258,6 +262,8 @@ class Home extends React.Component<{}, typeHomeState> {
   TAstart = () => {
     this.setState({
       TAstatus: "running",
+      TAtime: 0,
+      TAcount: 0
     });
     this.timerObj = setInterval(() => this.tick(), 1000);
   };
@@ -283,8 +289,34 @@ class Home extends React.Component<{}, typeHomeState> {
   };
 
   TAsubmit = () => {
-    this.setState({ TAinputValidation: true });
+    if (this.state.TAname == "" || this.state.TAname.length > 30){
+      this.setState({ TAinputValidation: true});
+      return
+    }
+    this.setState({ TAinputField: false });
+    db.collection("TimeAttackRanking")
+      .add({
+        name: this.state.TAname,
+        count: this.state.TAcount,
+        created_at: firebase.firestore.FieldValue.serverTimestamp(),
+      })
+      .then(function (docRef) {
+        //console.log("Document written with ID: ", docRef.id);
+      })
+      .catch(function (error) {
+        //console.error("Error adding document: ", error);
+      });
   };
+
+  twitterShareTA = () => {
+    var shareURL = 'https://twitter.com/intent/tweet?text=' + `3分間で${this.state.TAcount}個の10を作りました！` + '&url=' + `https://10tuku.hukurouo.com/`;  
+    window.open(shareURL, "SNS_window", "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes");
+  }
+
+  twitterShare = () => {
+    var shareURL = 'https://twitter.com/intent/tweet?text=' + `10を作ろう！` + '&url=' + `https://10tuku.hukurouo.com/`;  
+    window.open(shareURL, "SNS_window", "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes");
+  }
 
   render() {
     return (
@@ -294,7 +326,7 @@ class Home extends React.Component<{}, typeHomeState> {
           <link rel="icon" href="/favicon.ico" />
           <meta
             property="og:image"
-            content={`https://i.imgur.com/ikWQggQl.png`}
+            content={`https://i.imgur.com/I25KZX7l.png`}
           />
           <meta name="og:title" content={"10をつくるやつ"} />
           <meta name="twitter:card" content="summary" />
@@ -354,7 +386,6 @@ class Home extends React.Component<{}, typeHomeState> {
                       <Stack align="center">
                         <Text mb={4}>制限時間は3分間です。</Text>
                         <Button
-                          
                           mx={2}
                           bg="gray.200"
                           _hover={{ bg: "gray.400" }}
@@ -366,35 +397,64 @@ class Home extends React.Component<{}, typeHomeState> {
                       </Stack>
                     ) : (
                       <Stack align="center">
-                        <div>finished!</div>
-                        <Text fontSize="4xl" mb={4}>
-                          {" "}
-                          count: {this.state.TAcount-1}
-                        </Text>
+                        <div><b> finished!</b></div>
+                        
                         <Text mb={8}>
-                          3分間で{this.state.TAcount-1}個の10を作りました。
+                          3分間で{this.state.TAcount}個の10を作りました。
                         </Text>
-                        <FormControl isInvalid={this.state.TAinputValidation}>
-                          <Input
-                            placeholder="名前を入力"
-                            size="md"
-                            value={this.state.TAname}
-                            onChange={this.handleNameChange}
-                            isRequired={true}
-                          />{" "}
-                          <FormErrorMessage>
-                            名前を入力してください
-                          </FormErrorMessage>
-                        </FormControl>
+                        <Box align="center" mb={8}> 
+                        {this.state.TAinputField ? (
+                          <>
+                            <FormControl
+                              isInvalid={this.state.TAinputValidation}
+                            >
+                              <Input
+                                placeholder="名前を入力"
+                                size="md"
+                                value={this.state.TAname}
+                                onChange={this.handleNameChange}
+                                isRequired={true}
+                              />{" "}
+                              {this.state.TAname == "" ? (<FormErrorMessage>
+                                名前を入力してください
+                              </FormErrorMessage>):(<FormErrorMessage>
+                                30文字以上の名前は登録できません
+                              </FormErrorMessage>)}
+                              
+                            </FormControl>
+
+                            <Button
+                              mt={4}
+                              bg="green.200"
+                              _hover={{ bg: "green.300" }}
+                              color="gray.700"
+                              onClick={() => this.TAsubmit()}
+                            >
+                              記録する
+                            </Button>
+                          </>
+                        ):(
+                        <>
+                          記録しました。
+                        </>
+                        )}
+                        </Box>
                         <Button
-                          mx={2}
-                          bg="green.200"
-                          _hover={{ bg: "green.300" }}
-                          color="gray.700"
-                          onClick={() => this.TAsubmit()}
-                        >
-                          記録する
+                              bg="blue.200"
+                              _hover={{ bg: "blue.300" }}
+                              color="gray.700"
+                              onClick={() => this.twitterShareTA()}
+                            >
+                              結果をツイート
                         </Button>
+                        <Button
+                              bg="gray.200"
+                              _hover={{ bg: "gray.300" }}
+                              color="gray.700"
+                              onClick={() => this.TAstart()}
+                            >
+                              もう一度プレイ
+                            </Button>
                       </Stack>
                     )}
                   </Center>
@@ -413,6 +473,7 @@ class Home extends React.Component<{}, typeHomeState> {
         </Container>
         <Center color="black" mt={6}>
           <Stack>
+          <Link onClick={()=>{this.twitterShare()}}>
             <Center>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -428,10 +489,12 @@ class Home extends React.Component<{}, typeHomeState> {
               >
                 <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
               </svg>
+              
             </Center>
             <Center>
               <Text>share</Text>
             </Center>
+            </Link>
             <Text pt={4}>made by @hukurouo_code</Text>
           </Stack>
         </Center>

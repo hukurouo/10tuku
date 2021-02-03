@@ -47,7 +47,7 @@ function TimeAttack(props: inputPanelProps){
           ) : (
               <Alert status="info" bg="gray.100" mt={4}>
                 <AlertIcon />
-                {props.TAcount}問目 
+                {props.TAcount+1}問目 
               </Alert>
           )
         }
