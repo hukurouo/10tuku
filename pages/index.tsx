@@ -44,6 +44,7 @@ type typeHomeState = {
   TAname: string;
   TAinputValidation: boolean;
   TAinputField: boolean;
+  TAreload:boolean;
 };
 
 class Home extends React.Component<{}, typeHomeState> {
@@ -64,6 +65,7 @@ class Home extends React.Component<{}, typeHomeState> {
       TAname: "",
       TAinputValidation: false,
       TAinputField: true,
+      TAreload:true,
     };
   }
   componentDidMount() {
@@ -102,17 +104,24 @@ class Home extends React.Component<{}, typeHomeState> {
         this.setState({ ranking: rankingArray });
       })
       .catch(function (error) {
-        Ref.orderBy("count", "desc")
+        //console.log(error)
+      });
+  };
+
+  reload = () => {
+    console.log("relaod")
+    const Ref = db.collection("TimeAttackRanking");
+    const rankingArray = [];
+    Ref.orderBy("count", "desc")
           .limit(20)
           .get()
           .then((querySnapshot) => {
             querySnapshot.forEach(function (doc) {
               rankingArray.push(doc.data());
             });
-            this.setState({ ranking: rankingArray });
+            this.setState({ ranking: rankingArray, TAreload: false });
           });
-      });
-  };
+  }
 
   setProblem = (num: any) => {
     const strNum = String(num);
@@ -501,6 +510,8 @@ class Home extends React.Component<{}, typeHomeState> {
                 <Ranking
                   name={this.state.displayName}
                   rankingData={this.state.ranking}
+                  reload={()=>this.reload()}
+                  reloadFlag={this.state.TAreload}
                 />
               </TabPanel>
             </TabPanels>

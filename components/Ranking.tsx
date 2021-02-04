@@ -5,6 +5,7 @@ import {
   Tr,
   Th,
   Text,
+  Link,
   Button,
   Td,Tabs, TabList, TabPanels, Tab, TabPanel,
   TableCaption,
@@ -15,8 +16,12 @@ export default function Ranking(props) {
   return (
     <div>
       <Text my={4}>
-        
       タイムアタックのランキングです。
+      {props.reloadFlag && <><Link
+              color="blue.500"
+              onClick={props.reload}
+            >更新</Link></>}
+      
       
       </Text>
       <Table size="sm" mt={8}>
