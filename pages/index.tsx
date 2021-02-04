@@ -92,7 +92,7 @@ class Home extends React.Component<{}, typeHomeState> {
     const Ref = db.collection("TimeAttackRanking");
     const rankingArray = [];
     Ref.orderBy("count", "desc")
-      .limit(10)
+      .limit(20)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach(function (doc) {
