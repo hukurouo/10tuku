@@ -93,7 +93,7 @@ class Home extends React.Component<{}, typeHomeState> {
     const rankingArray = [];
     Ref.orderBy("count", "desc")
       .limit(20)
-      .get()
+      .get({ source: "cache" })
       .then((querySnapshot) => {
         querySnapshot.forEach(function (doc) {
           //console.log(doc.id, " => ", doc.data());
@@ -102,7 +102,15 @@ class Home extends React.Component<{}, typeHomeState> {
         this.setState({ ranking: rankingArray });
       })
       .catch(function (error) {
-        //console.log("Error getting documents: ", error);
+        Ref.orderBy("count", "desc")
+          .limit(20)
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach(function (doc) {
+              rankingArray.push(doc.data());
+            });
+            this.setState({ ranking: rankingArray });
+          });
       });
   };
 
@@ -263,7 +271,7 @@ class Home extends React.Component<{}, typeHomeState> {
     this.setState({
       TAstatus: "running",
       TAtime: 0,
-      TAcount: 0
+      TAcount: 0,
     });
     this.timerObj = setInterval(() => this.tick(), 1000);
   };
@@ -289,9 +297,9 @@ class Home extends React.Component<{}, typeHomeState> {
   };
 
   TAsubmit = () => {
-    if (this.state.TAname == "" || this.state.TAname.length > 30){
-      this.setState({ TAinputValidation: true});
-      return
+    if (this.state.TAname == "" || this.state.TAname.length > 30) {
+      this.setState({ TAinputValidation: true });
+      return;
     }
     this.setState({ TAinputField: false });
     db.collection("TimeAttackRanking")
@@ -301,7 +309,17 @@ class Home extends React.Component<{}, typeHomeState> {
         created_at: firebase.firestore.FieldValue.serverTimestamp(),
       })
       .then(function (docRef) {
-        //console.log("Document written with ID: ", docRef.id);
+        const Ref = db.collection("TimeAttackRanking");
+        const rankingArray = [];
+        Ref.orderBy("count", "desc")
+          .limit(20)
+          .get()
+          .then((querySnapshot) => {
+            querySnapshot.forEach(function (doc) {
+              rankingArray.push(doc.data());
+            });
+            this.setState({ ranking: rankingArray });
+          });
       })
       .catch(function (error) {
         //console.error("Error adding document: ", error);
@@ -309,14 +327,30 @@ class Home extends React.Component<{}, typeHomeState> {
   };
 
   twitterShareTA = () => {
-    var shareURL = 'https://twitter.com/intent/tweet?text=' + `3分間で${this.state.TAcount}個の10を作りました！` + '&url=' + `https://10tuku.hukurouo.com/`;  
-    window.open(shareURL, "SNS_window", "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes");
-  }
+    var shareURL =
+      "https://twitter.com/intent/tweet?text=" +
+      `3分間で${this.state.TAcount}個の10を作りました！` +
+      "&url=" +
+      `https://10tuku.hukurouo.com/`;
+    window.open(
+      shareURL,
+      "SNS_window",
+      "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes"
+    );
+  };
 
   twitterShare = () => {
-    var shareURL = 'https://twitter.com/intent/tweet?text=' + `10を作ろう！` + '&url=' + `https://10tuku.hukurouo.com/`;  
-    window.open(shareURL, "SNS_window", "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes");
-  }
+    var shareURL =
+      "https://twitter.com/intent/tweet?text=" +
+      `10を作ろう！` +
+      "&url=" +
+      `https://10tuku.hukurouo.com/`;
+    window.open(
+      shareURL,
+      "SNS_window",
+      "width=600, height=500, menubar=no, toolbar=no, scrollbars=yes"
+    );
+  };
 
   render() {
     return (
@@ -397,64 +431,67 @@ class Home extends React.Component<{}, typeHomeState> {
                       </Stack>
                     ) : (
                       <Stack align="center">
-                        <div><b> finished!</b></div>
-                        
+                        <div>
+                          <b> finished!</b>
+                        </div>
+
                         <Text mb={8}>
                           3分間で{this.state.TAcount}個の10を作りました。
                         </Text>
-                        <Box align="center" mb={8}> 
-                        {this.state.TAinputField ? (
-                          <>
-                            <FormControl
-                              isInvalid={this.state.TAinputValidation}
-                            >
-                              <Input
-                                placeholder="名前を入力"
-                                size="md"
-                                value={this.state.TAname}
-                                onChange={this.handleNameChange}
-                                isRequired={true}
-                              />{" "}
-                              {this.state.TAname == "" ? (<FormErrorMessage>
-                                名前を入力してください
-                              </FormErrorMessage>):(<FormErrorMessage>
-                                30文字以上の名前は登録できません
-                              </FormErrorMessage>)}
-                              
-                            </FormControl>
+                        <Box align="center" mb={8}>
+                          {this.state.TAinputField ? (
+                            <>
+                              <FormControl
+                                isInvalid={this.state.TAinputValidation}
+                              >
+                                <Input
+                                  placeholder="名前を入力"
+                                  size="md"
+                                  value={this.state.TAname}
+                                  onChange={this.handleNameChange}
+                                  isRequired={true}
+                                />{" "}
+                                {this.state.TAname == "" ? (
+                                  <FormErrorMessage>
+                                    名前を入力してください
+                                  </FormErrorMessage>
+                                ) : (
+                                  <FormErrorMessage>
+                                    30文字以上の名前は登録できません
+                                  </FormErrorMessage>
+                                )}
+                              </FormControl>
 
-                            <Button
-                              mt={4}
-                              bg="green.200"
-                              _hover={{ bg: "green.300" }}
-                              color="gray.700"
-                              onClick={() => this.TAsubmit()}
-                            >
-                              記録する
-                            </Button>
-                          </>
-                        ):(
-                        <>
-                          記録しました。
-                        </>
-                        )}
+                              <Button
+                                mt={4}
+                                bg="green.200"
+                                _hover={{ bg: "green.300" }}
+                                color="gray.700"
+                                onClick={() => this.TAsubmit()}
+                              >
+                                記録する
+                              </Button>
+                            </>
+                          ) : (
+                            <>記録しました。</>
+                          )}
                         </Box>
                         <Button
-                              bg="blue.200"
-                              _hover={{ bg: "blue.300" }}
-                              color="gray.700"
-                              onClick={() => this.twitterShareTA()}
-                            >
-                              結果をツイート
+                          bg="blue.200"
+                          _hover={{ bg: "blue.300" }}
+                          color="gray.700"
+                          onClick={() => this.twitterShareTA()}
+                        >
+                          結果をツイート
                         </Button>
                         <Button
-                              bg="gray.200"
-                              _hover={{ bg: "gray.300" }}
-                              color="gray.700"
-                              onClick={() => this.TAstart()}
-                            >
-                              もう一度プレイ
-                            </Button>
+                          bg="gray.200"
+                          _hover={{ bg: "gray.300" }}
+                          color="gray.700"
+                          onClick={() => this.TAstart()}
+                        >
+                          もう一度プレイ
+                        </Button>
                       </Stack>
                     )}
                   </Center>
@@ -464,8 +501,6 @@ class Home extends React.Component<{}, typeHomeState> {
                 <Ranking
                   name={this.state.displayName}
                   rankingData={this.state.ranking}
-                  handleClickTwitterAuth={() => this.twitterAuth()}
-                  handleClickTwitterLogout={() => this.twitterLogout()}
                 />
               </TabPanel>
             </TabPanels>
@@ -473,27 +508,30 @@ class Home extends React.Component<{}, typeHomeState> {
         </Container>
         <Center color="black" mt={6}>
           <Stack>
-          <Link onClick={()=>{this.twitterShare()}}>
-            <Center>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="feather feather-twitter"
-              >
-                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-              </svg>
-              
-            </Center>
-            <Center>
-              <Text>share</Text>
-            </Center>
+            <Link
+              onClick={() => {
+                this.twitterShare();
+              }}
+            >
+              <Center>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-twitter"
+                >
+                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+                </svg>
+              </Center>
+              <Center>
+                <Text>share</Text>
+              </Center>
             </Link>
             <Text pt={4}>made by @hukurouo_code</Text>
           </Stack>
