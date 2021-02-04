@@ -70,7 +70,6 @@ class Home extends React.Component<{}, typeHomeState> {
   }
   componentDidMount() {
     this.initial();
-    this.getRedirectResult();
     this.getRankingData();
   }
 
