@@ -15,7 +15,6 @@ import {
   CloseButton,
   Stack,
 } from "@chakra-ui/react";
-import AccordionMenu from "./Accordion"
 
 
 type inputPanelType = {

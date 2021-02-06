@@ -20,7 +20,7 @@ import {
   Link,
 } from "@chakra-ui/react";
 import InputPanel from "../components/InputPanel";
-import TimeAttack from "../components/TimeAttack";
+import TimeAttackMenu from "../components/TimeAttackMenu";
 import Ranking from "../components/Ranking";
 import Nums from "../components/Nums";
 import firebase from "firebase/app";
@@ -44,7 +44,7 @@ type typeHomeState = {
   TAname: string;
   TAinputValidation: boolean;
   TAinputField: boolean;
-  TAreload:boolean;
+  TAreload: boolean;
 };
 
 class Home extends React.Component<{}, typeHomeState> {
@@ -65,7 +65,7 @@ class Home extends React.Component<{}, typeHomeState> {
       TAname: "",
       TAinputValidation: false,
       TAinputField: true,
-      TAreload:true,
+      TAreload: true,
     };
   }
   componentDidMount() {
@@ -75,19 +75,7 @@ class Home extends React.Component<{}, typeHomeState> {
 
   initial = () => {
     const problemNum = Nums[Math.floor(Math.random() * Nums.length)];
-    this.setProblem(problemNum);
   };
-
-  getRedirectResult() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        this.setState({
-          displayName: user.displayName,
-          uid: user.uid,
-        });
-      }
-    });
-  }
 
   getRankingData = () => {
     const Ref = db.collection("TimeAttackRanking");
@@ -108,41 +96,18 @@ class Home extends React.Component<{}, typeHomeState> {
   };
 
   reload = () => {
-    console.log("relaod")
+    console.log("relaod");
     const Ref = db.collection("TimeAttackRanking");
     const rankingArray = [];
     Ref.orderBy("count", "desc")
-          .limit(20)
-          .get()
-          .then((querySnapshot) => {
-            querySnapshot.forEach(function (doc) {
-              rankingArray.push(doc.data());
-            });
-            this.setState({ ranking: rankingArray, TAreload: false });
-          });
-  }
-
-  setProblem = (num: any) => {
-    const strNum = String(num);
-    const prev = this.state.problem;
-    //console.log(prev);
-    const problem =
-      prev.length === 0
-        ? String(num).split("").join("+").split("")
-        : (
-            strNum[0] +
-            prev[1] +
-            strNum[1] +
-            prev[3] +
-            strNum[2] +
-            prev[5] +
-            strNum[3]
-          ).split("");
-    this.setState({
-      problemNumber: num,
-      problem: problem,
-      isSuccess: false,
-    });
+      .limit(20)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach(function (doc) {
+          rankingArray.push(doc.data());
+        });
+        this.setState({ ranking: rankingArray, TAreload: false });
+      });
   };
 
   handleInputChange = (event: { target: any; preventDefault: () => void }) => {
@@ -161,7 +126,6 @@ class Home extends React.Component<{}, typeHomeState> {
   handleSubmit = () => {
     const answer = eval(this.state.problem.join(""));
     if (answer == 10) {
-      this.finishedAnswer();
       this.setState({
         isSuccess: true,
       });
@@ -186,25 +150,6 @@ class Home extends React.Component<{}, typeHomeState> {
     }
   };
 
-  finishedAnswer = () => {
-    if (!this.state.uid) {
-      return;
-    }
-    const increment = firebase.firestore.FieldValue.increment(1);
-    var docRef = db.collection("ranking").doc(this.state.uid);
-    docRef
-      .update({
-        count: increment,
-      })
-      .then(function () {
-        //console.log("Document successfully updated!");
-      })
-      .catch(function (error) {
-        // The document probably doesn't exist.
-        console.error("Error updating document: ", error);
-      });
-  };
-
   handleClick = () => {
     this.setState({
       isFailure: false,
@@ -219,59 +164,6 @@ class Home extends React.Component<{}, typeHomeState> {
 
   nextProblem = () => {
     this.initial();
-  };
-
-  twitterAuth = () => {
-    //console.log("auth");
-    const provider = new firebase.auth.TwitterAuthProvider();
-    firebase
-      .auth()
-      .signInWithPopup(provider)
-      .then((result) => {
-        //console.log(result.additionalUserInfo.username);
-        var rankingRef = db.collection("ranking").doc(result.user.uid);
-        rankingRef
-          .get()
-          .then(function (doc) {
-            if (doc.exists) {
-              //console.log("got document data");
-            } else {
-              db.collection("ranking")
-                .doc(result.user.uid)
-                .set({
-                  count: 0,
-                  screenName: result.additionalUserInfo.username,
-                })
-                .then(function () {
-                  //console.log("Document successfully written!");
-                })
-                .catch(function (error) {
-                  //console.error("Error writing document: ", error);
-                });
-            }
-          })
-          .catch(function (error) {
-            //console.log("Error getting document:", error);
-          });
-      })
-      .catch((error) => {
-        //console.log(error);
-      });
-  };
-
-  twitterLogout = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        this.setState({
-          displayName: "",
-          uid: "",
-        });
-      })
-      .catch((error) => {
-        // An error happened.
-      });
   };
 
   timerObj: any;
@@ -316,7 +208,7 @@ class Home extends React.Component<{}, typeHomeState> {
         count: this.state.TAcount,
         created_at: firebase.firestore.FieldValue.serverTimestamp(),
       })
-      .then(function (docRef) {
+      .then(()=> {
         const Ref = db.collection("TimeAttackRanking");
         const rankingArray = [];
         Ref.orderBy("count", "desc")
@@ -410,106 +302,13 @@ class Home extends React.Component<{}, typeHomeState> {
                 />
               </TabPanel>
               <TabPanel align="left">
-                {this.state.TAstatus == "running" ? (
-                  <TimeAttack
-                    problem={this.state.problem}
-                    handleInputChange={(event: {
-                      target: any;
-                      preventDefault: () => void;
-                    }) => this.handleInputChange(event)}
-                    TAhandleSubmit={() => this.TAhandleSubmit()}
-                    TAisFailure={this.state.TAisFailure}
-                    TAcount={this.state.TAcount}
-                    TAtime={this.state.TAtime}
-                  />
-                ) : (
-                  <Center mt={8}>
-                    {this.state.TAstatus == "ready" ? (
-                      <Stack align="center">
-                        <Text mb={4}>制限時間は3分間です。</Text>
-                        <Button
-                          mx={2}
-                          bg="gray.200"
-                          _hover={{ bg: "gray.400" }}
-                          color="gray.700"
-                          onClick={() => this.TAstart()}
-                        >
-                          タイムアタック開始
-                        </Button>
-                      </Stack>
-                    ) : (
-                      <Stack align="center">
-                        <div>
-                          <b> finished!</b>
-                        </div>
-
-                        <Text mb={8}>
-                          3分間で{this.state.TAcount}個の10を作りました。
-                        </Text>
-                        <Box align="center" mb={8}>
-                          {this.state.TAinputField ? (
-                            <>
-                              <FormControl
-                                isInvalid={this.state.TAinputValidation}
-                              >
-                                <Input
-                                  placeholder="名前を入力"
-                                  size="md"
-                                  value={this.state.TAname}
-                                  onChange={this.handleNameChange}
-                                  isRequired={true}
-                                />{" "}
-                                {this.state.TAname == "" ? (
-                                  <FormErrorMessage>
-                                    名前を入力してください
-                                  </FormErrorMessage>
-                                ) : (
-                                  <FormErrorMessage>
-                                    30文字以上の名前は登録できません
-                                  </FormErrorMessage>
-                                )}
-                              </FormControl>
-
-                              <Button
-                                mt={4}
-                                bg="green.200"
-                                _hover={{ bg: "green.300" }}
-                                color="gray.700"
-                                onClick={() => this.TAsubmit()}
-                              >
-                                記録する
-                              </Button>
-                            </>
-                          ) : (
-                            <>記録しました。</>
-                          )}
-                        </Box>
-                        <Button
-                          bg="blue.200"
-                          _hover={{ bg: "blue.300" }}
-                          color="gray.700"
-                          onClick={() => this.twitterShareTA()}
-                        >
-                          結果をツイート
-                        </Button>
-                        <Button
-                          bg="gray.200"
-                          _hover={{ bg: "gray.300" }}
-                          color="gray.700"
-                          onClick={() => this.TAstart()}
-                        >
-                          もう一度プレイ
-                        </Button>
-                      </Stack>
-                    )}
-                  </Center>
-                )}
+                <TimeAttackMenu/>
               </TabPanel>
               <TabPanel>
                 <Ranking
                   name={this.state.displayName}
                   rankingData={this.state.ranking}
-                  reload={()=>this.reload()}
+                  reload={() => this.reload()}
                   reloadFlag={this.state.TAreload}
                 />
               </TabPanel>
