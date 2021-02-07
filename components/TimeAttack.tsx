@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Center,
   Text,
@@ -19,11 +19,12 @@ import Nums from './Nums'
 
 type inputPanelProps = {
   time: number
+  count: number
+  countUp: any
 }
 
-function TimeAttack({ time }: inputPanelProps) {
+function TimeAttack(props: inputPanelProps) {
   const [problem, setProblem] = useState(initialProblemDisplay)
-  const [count, setCount] = useState(0)
   const [isFailure, setIsFailure] = useState(false)
   const toast = useToast()
 
@@ -50,71 +51,62 @@ function TimeAttack({ time }: inputPanelProps) {
       ) : (
         <Alert status="info" bg="gray.100" mt={4}>
           <AlertIcon />
-          {count + 1}問目
+          {props.count + 1}問目
         </Alert>
       )}
       <PloblemDisplay problem={problem} />
-      <form>
-        <Center>
-          <Grid templateColumns="repeat(3, 1fr)" gap={1} w={300} mb={6} px={3}>
-            {[1, 3, 5].map((item, index) => {
-              return (
-                <RadioGroup
-                  defaultValue={problem[item] || '+'}
-                  key={index}
-                  d="flex"
-                  mt="2"
-                  mx="auto"
-                  alignItems="center"
-                >
-                  <Stack spacing={5} direction="column">
-                    {['+', '-', '*', '/'].map((operator) => {
-                      return (
-                        <Radio
-                          key={operator}
-                          value={operator}
-                          name={String(item)}
-                          onChange={(event) => {
-                            const target = event.target
-                            problem.splice(Number(target.name), 1, target.value)
-                            setProblem(problem.join('').split(''))
-                            setIsFailure(false)
-                          }}
-                        >
-                          <Text fontSize="3xl">{operatorSvg(operator)}</Text>
-                        </Radio>
-                      )
-                    })}
-                  </Stack>
-                </RadioGroup>
-              )
-            })}
-          </Grid>
-        </Center>
-        <Center mt={4}>
-          <Button
-            onClick={() => {
-              const answer = eval(problem.join(''))
-              if (answer == 10) {
-                toast({
-                  position: 'top',
-                  title: `${problem.join(' ')} = ${eval(problem.join(''))}`,
-                  status: 'success',
-                  duration: 2000,
-                  isClosable: true
-                })
-                setProblem(initialProblemDisplay)
-                setCount(count + 1)
-              } else {
-                setIsFailure(true)
-              }
-            }}
-          >
-            送信
-          </Button>
-        </Center>
-        <Progress value={time} mt={4} max={180} />
-      </form>
+      <Center>
+        <Grid templateColumns="repeat(3, 1fr)" gap={1} w={300} mb={6} px={3}>
+          {[1, 3, 5].map((item, index) => {
+            return (
+              <RadioGroup defaultValue={problem[item] || '+'} key={index} d="flex" mt="2" mx="auto" alignItems="center">
+                <Stack spacing={5} direction="column">
+                  {['+', '-', '*', '/'].map((operator) => {
+                    return (
+                      <Radio
+                        key={operator}
+                        value={operator}
+                        name={String(item)}
+                        onChange={(event) => {
+                          const target = event.target
+                          problem.splice(Number(target.name), 1, target.value)
+                          setProblem(problem.join('').split(''))
+                          setIsFailure(false)
+                        }}
+                      >
+                        <Text fontSize="3xl">{operatorSvg(operator)}</Text>
+                      </Radio>
+                    )
+                  })}
+                </Stack>
+              </RadioGroup>
+            )
+          })}
+        </Grid>
+      </Center>
+      <Center mt={4}>
+        <Button
+          onClick={() => {
+            const answer = eval(problem.join(''))
+            if (answer == 10) {
+              toast({
+                position: 'top',
+                title: `${problem.join(' ')} = ${eval(problem.join(''))}`,
+                status: 'success',
+                duration: 2000,
+                isClosable: true
+              })
+              setProblem(initialProblemDisplay)
+              props.countUp()
+            } else {
+              setIsFailure(true)
+            }
+          }}
+        >
+          送信
+        </Button>
+      </Center>
+      <Progress value={props.time} mt={4} max={180} />
     </div>
   )
 }
