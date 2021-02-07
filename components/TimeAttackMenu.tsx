@@ -87,6 +87,7 @@ export default function TimeAttackMenu() {
               onClick={() => {
                 setStatus('running')
                 setTime(0)
+                setCount(0)
               }}
             >
               タイムアタック開始
